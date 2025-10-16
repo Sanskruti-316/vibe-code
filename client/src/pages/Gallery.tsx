@@ -1,10 +1,53 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { GalleryHeader } from "@/components/GalleryHeader";
 import { CategoryFilter, type Category } from "@/components/CategoryFilter";
-import { MasonryGallery } from "@/components/MasonryGallery";
+import { SearchBar } from "@/components/SearchBar";
+import { MasonryGallery, type GalleryImage } from "@/components/MasonryGallery";
 import { Lightbox } from "@/components/Lightbox";
+import { getFavorites, toggleFavorite } from "@/lib/favorites";
 
-const aspectRatios = [0.67, 0.75, 0.8, 1, 1.2, 1.33, 1.5];
+const authors = [
+  "Emma Johnson", "Michael Chen", "Sarah Williams", "David Martinez",
+  "Jessica Brown", "Alex Thompson", "Rachel Kim", "James Anderson",
+  "Sophie Davis", "Daniel Garcia", "Olivia Wilson", "Ryan Miller"
+];
+
+const resolutions = ["1920×1080", "1920×1280", "1600×900", "1200×1600", "2400×1600"];
+
+const titles = {
+  nature: [
+    "Mountain Majesty", "Ocean Sunset", "Forest Whispers", 
+    "Waterfall Cascade", "Valley Dreams", "Garden Blooms", "Peak Paradise"
+  ],
+  architecture: [
+    "Urban Giants", "City Skyline", "Bridge to Tomorrow",
+    "Modern Sanctuary", "Glass & Steel", "Historic Charm", "Architectural Poetry"
+  ],
+  people: [
+    "Portrait in Light", "Friends Forever", "Creative Minds",
+    "Candid Joy", "Life in Motion", "Urban Explorer", "Faces of Grace"
+  ],
+  abstract: [
+    "Geometric Dreams", "Color Symphony", "Texture Study",
+    "Minimal Beauty", "Light & Shadow", "Artistic Blur", "Pattern Play"
+  ],
+  urban: [
+    "Street Stories", "Nightlife Glow", "Downtown Pulse",
+    "Street Art", "Underground Journey", "City Horizon", "Urban Flow"
+  ],
+  animals: [
+    "Feline Grace", "Loyal Companion", "Wings of Freedom",
+    "Ocean Depths", "Wild Spirit", "Butterfly Dance", "Farm Life"
+  ],
+  food: [
+    "Culinary Art", "Fresh Harvest", "Dining Delight",
+    "Artisan Bread", "Coffee Break", "Sweet Indulgence", "Garden Fresh"
+  ],
+  travel: [
+    "Paradise Found", "Mountain Quest", "City Adventures",
+    "Iconic Landmarks", "Outdoor Escape", "Cultural Journey", "Road Ahead"
+  ],
+};
 
 const categoryImages = {
   nature: [
@@ -81,14 +124,19 @@ const categoryImages = {
   ],
 };
 
-const galleryImages = Object.entries(categoryImages).flatMap(([category, images]) =>
-  images.map((img) => {
+const galleryImages: GalleryImage[] = Object.entries(categoryImages).flatMap(([category, images]) =>
+  images.map((img, index) => {
     const width = 800;
     const height = Math.floor(width / img.aspectRatio);
+    const categoryTitles = titles[category as keyof typeof titles];
+    
     return {
       id: img.id,
       src: `https://source.unsplash.com/${width}x${height}/?${img.keywords}`,
       category,
+      title: categoryTitles[index],
+      author: authors[Math.floor(Math.random() * authors.length)],
+      resolution: resolutions[Math.floor(Math.random() * resolutions.length)],
       aspectRatio: img.aspectRatio,
     };
   })
@@ -96,12 +144,38 @@ const galleryImages = Object.entries(categoryImages).flatMap(([category, images]
 
 export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState<Category>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setFavorites(getFavorites());
+  }, []);
+
+  const handleToggleFavorite = (imageId: number) => {
+    const newFavorites = toggleFavorite(imageId);
+    setFavorites(new Set(newFavorites));
+  };
 
   const filteredImages = useMemo(() => {
-    if (activeCategory === "all") return galleryImages;
-    return galleryImages.filter((img) => img.category === activeCategory);
-  }, [activeCategory]);
+    let result = galleryImages;
+
+    if (activeCategory !== "all") {
+      result = result.filter((img) => img.category === activeCategory);
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (img) =>
+          img.title.toLowerCase().includes(query) ||
+          img.author.toLowerCase().includes(query) ||
+          img.category.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [activeCategory, searchQuery]);
 
   const handleNavigate = (direction: "prev" | "next") => {
     if (lightboxIndex === null) return;
@@ -120,17 +194,25 @@ export default function Gallery() {
         activeCategory={activeCategory} 
         onCategoryChange={setActiveCategory} 
       />
+      <SearchBar 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
       <MasonryGallery 
-        images={filteredImages} 
-        onImageClick={setLightboxIndex} 
+        images={filteredImages}
+        favorites={favorites}
+        onImageClick={setLightboxIndex}
+        onToggleFavorite={handleToggleFavorite}
       />
       
       {lightboxIndex !== null && (
         <Lightbox
           images={filteredImages}
           currentIndex={lightboxIndex}
+          favorites={favorites}
           onClose={() => setLightboxIndex(null)}
           onNavigate={handleNavigate}
+          onToggleFavorite={handleToggleFavorite}
         />
       )}
     </div>

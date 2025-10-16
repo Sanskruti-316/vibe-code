@@ -1,15 +1,26 @@
 import { useEffect } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-interface LightboxProps {
-  images: { id: number; src: string; category: string }[];
-  currentIndex: number;
-  onClose: () => void;
-  onNavigate: (direction: "prev" | "next") => void;
+export interface LightboxImage {
+  id: number;
+  src: string;
+  category: string;
+  title: string;
+  author: string;
+  resolution: string;
 }
 
-export function Lightbox({ images, currentIndex, onClose, onNavigate }: LightboxProps) {
+interface LightboxProps {
+  images: LightboxImage[];
+  currentIndex: number;
+  favorites: Set<number>;
+  onClose: () => void;
+  onNavigate: (direction: "prev" | "next") => void;
+  onToggleFavorite: (imageId: number) => void;
+}
+
+export function Lightbox({ images, currentIndex, favorites, onClose, onNavigate, onToggleFavorite }: LightboxProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -29,6 +40,7 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
   const currentImage = images[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < images.length - 1;
+  const isFavorite = favorites.has(currentImage.id);
 
   return (
     <div 
@@ -37,18 +49,36 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
       data-testid="lightbox-overlay"
     >
       <div className="relative w-full h-full flex items-center justify-center p-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 right-4 text-white hover:bg-white/10 backdrop-blur-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          data-testid="button-lightbox-close"
-        >
-          <X className="h-6 w-6" />
-        </Button>
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`text-white backdrop-blur-sm transition-all ${
+              isFavorite 
+                ? "bg-primary/20 hover:bg-primary/30" 
+                : "hover:bg-white/10"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(currentImage.id);
+            }}
+            data-testid="button-lightbox-favorite"
+          >
+            <Heart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10 backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            data-testid="button-lightbox-close"
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
 
         {hasPrev && (
           <Button
@@ -81,23 +111,34 @@ export function Lightbox({ images, currentIndex, onClose, onNavigate }: Lightbox
         )}
 
         <div 
-          className="max-w-7xl max-h-[90vh] animate-scale-in"
+          className="max-w-7xl max-h-[85vh] animate-scale-in"
           onClick={(e) => e.stopPropagation()}
         >
           <img
             src={currentImage.src}
-            alt={`${currentImage.category} photo ${currentImage.id}`}
-            className="max-w-full max-h-[90vh] object-contain"
+            alt={currentImage.title}
+            className="max-w-full max-h-[85vh] object-contain"
             data-testid={`image-lightbox-${currentImage.id}`}
           />
           
-          <div className="mt-4 text-center">
-            <p className="text-white/90 text-base font-medium" data-testid="text-lightbox-category">
-              {currentImage.category}
+          <div className="mt-6 text-center space-y-2 px-4">
+            <h2 className="text-white text-xl font-semibold" data-testid="text-lightbox-title">
+              {currentImage.title}
+            </h2>
+            <p className="text-white/80 text-base" data-testid="text-lightbox-author">
+              by {currentImage.author}
             </p>
-            <p className="text-white/60 text-sm mt-1" data-testid="text-lightbox-counter">
-              {currentIndex + 1} / {images.length}
-            </p>
+            <div className="flex items-center justify-center gap-4 text-sm text-white/70">
+              <span className="uppercase tracking-wide" data-testid="text-lightbox-category">
+                {currentImage.category}
+              </span>
+              <span>•</span>
+              <span data-testid="text-lightbox-resolution">{currentImage.resolution}</span>
+              <span>•</span>
+              <span data-testid="text-lightbox-counter">
+                {currentIndex + 1} / {images.length}
+              </span>
+            </div>
           </div>
         </div>
       </div>
