@@ -1,6 +1,33 @@
-node_modules
-dist
+# Node
+node_modules/
+build/
+dist/
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Local upload & user files
+photo-gallery/uploads/
+uploads/
+
+# OS
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
