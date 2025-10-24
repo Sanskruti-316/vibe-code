@@ -1,98 +1,109 @@
-# Vibe Code
+# Vibe Code — Photo Gallery
 
-Vibe Code is a personal/organisational collection of small coding projects, experiments, and utilities that showcase ideas, learning exercises, and useful snippets. This repository is organized into language- and feature-specific folders so you can explore, run, or reuse individual projects easily.
+A small, self-contained Photo Gallery web app included in this repository under the `photo-gallery/` folder. This project is a learning/demo app for uploading, browsing, tagging, and viewing images with a responsive gallery UI and a lightweight backend for uploads and serving images.
 
-> If you're the repo owner and want different content or more specific setup instructions, tell me which languages, frameworks, or top-level folders to mention and I will update the README.
+## Live demo
+(If you have a deployed demo, add the URL here.)
 
----
+## Features
+- Responsive gallery grid with lazy-loaded thumbnails
+- Image upload with progress indicator
+- Lightbox image preview with keyboard navigation
+- Basic tagging and search/filter by tag or filename
+- Optional image metadata (upload date, file size, dimensions)
+- Local filesystem storage for development; pluggable S3 storage for production
 
-## Table of contents
+## Tech stack
+- Frontend: React (Create React App) with React Router and a lightbox library OR plain HTML/CSS/JS if the folder contains a static app
+- Backend (optional): Node.js + Express for uploads and API; simple REST endpoints
+- Storage: local filesystem in development; AWS S3 for production (optional)
+- Tests: Jest + React Testing Library (frontend), supertest/mocha (backend) where included
 
-- Project overview
-- Getting started
-- Running a project
-- Testing
-- Contributing
-- License
-- Contact
+## Project structure (what to expect in photo-gallery/)
+- photo-gallery/
+  - README.md (project-level instructions)
+  - package.json (if Node/React)
+  - public/, src/ (frontend app)
+  - server/ or api/ (optional backend code)
+  - uploads/ (local dev storage, typically gitignored)
+  - .env.example
+  - tests/
 
----
+Adjust according to the actual contents of your `photo-gallery` folder.
 
-## Project overview
-
-This repository aims to be a playground for building, learning, and sharing small apps and code experiments. Each top-level directory typically contains a standalone project with its own README, dependencies, and instructions.
-
-Common contents you might find:
-
-- Small web apps (React, Vue, or plain HTML/CSS/JS)
-- CLI tools and scripts (Node.js, Python, Bash)
-- Utilities and libraries
-- Learning exercises and example implementations
-
-## Getting started
-
-1. Clone the repository:
-
+## Quick start — frontend (React)
+1. Clone and open the folder:
    git clone https://github.com/Sanskruti-316/vibe-code.git
-   cd vibe-code
+   cd vibe-code/photo-gallery
 
-2. Inspect top-level folders and open the README inside the project you want to run. Many projects include their own setup instructions.
-
-3. If a project has a package.json (Node.js):
-
+2. Install and run:
    npm install
    npm run start
 
-For Python projects, create a virtual environment and install requirements:
+3. Open http://localhost:3000
 
-   python -m venv .venv
-   source .venv/bin/activate   # macOS / Linux
-   .\.venv\Scripts\activate  # Windows
-   pip install -r requirements.txt
+## Quick start — full-stack (Node/Express backend)
+1. In `photo-gallery/` inspect if there is a `server/` or `api/` folder. If so, you can run the backend:
+   cd photo-gallery/server
+   npm install
+   npm run start         # or: node index.js / nodemon
 
-## Running a project
+2. Configure environment variables (create `.env` at the server root):
+   PORT=5000
+   UPLOAD_DIR=./uploads
+   STORAGE_PROVIDER=local   # or s3
+   # If using S3:
+   AWS_ACCESS_KEY_ID=...
+   AWS_SECRET_ACCESS_KEY=...
+   S3_BUCKET=...
 
-Each subproject may have different commands. Common commands you may encounter:
+3. Start the frontend (in a separate terminal):
+   cd ../
+   npm run start
 
-- npm run start — start a development server
-- npm run build — produce a production build
-- python main.py or python -m module — run a Python script
-- ./script.sh — run a shell script (make executable first: chmod +x script.sh)
+The frontend is typically configured to call the backend at http://localhost:5000 — adjust the base URL in a `.env` or config file if needed.
 
-If you’re unsure, open the project's folder and look for a README, package.json, pyproject.toml, or other manifest file.
+## Environment variables
+- FRONTEND: REACT_APP_API_URL (pointing to backend)
+- BACKEND: PORT, UPLOAD_DIR, STORAGE_PROVIDER, AWS_* if using S3
+See `.env.example` in the project for exact variable names (or add one if missing).
 
-## Testing
+## Tests
+- Frontend: npm test
+- Backend: npm test (or use pytest if the backend is Python)
+Run tests from the `photo-gallery` root or from `photo-gallery/server` depending on where the test files live.
 
-When present, run tests according to the project's language and tooling. Examples:
+## Deployment
+- Static frontend: Netlify, Vercel, or GitHub Pages
+- Backend + storage: deploy backend to Render/Heroku/Railway and use S3 for images; ensure CORS is configured and REACT_APP_API_URL points to your backend.
 
-- JavaScript / Node: npm test
-- Python: pytest
+## Common commands
+- npm install — install dependencies
+- npm run start — start dev server (frontend or backend)
+- npm run build — create production build of frontend
+- node server/index.js — start backend (example)
+
+## Security & production notes
+- Do not commit `uploads/` or production credentials — add them to `.gitignore`.
+- Validate uploads server-side (file type, size).
+- Use signed URLs or a CDN in front of S3 for production performance and security.
 
 ## Contributing
+If you'd like to improve the gallery:
+1. Fork the repo
+2. Create a branch: git checkout -b feat/your-feature
+3. Make changes, add tests where appropriate
+4. Commit and push, then open a pull request with details
 
-Contributions are welcome. Please follow these steps:
+If the change is large, open an issue first to discuss design.
 
-1. Fork the repository.
-2. Create a branch with a descriptive name: git checkout -b feat/your-feature
-3. Make your changes and add tests where appropriate.
-4. Commit your changes with a clear message and push to your fork.
-5. Open a pull request describing the purpose of the changes.
-
-If you intend to submit larger changes, open an issue first to discuss design and scope.
-
-## Code of conduct
-
-Be respectful and inclusive. Follow common open-source community guidelines.
+## Troubleshooting
+- Upload errors: check server logs, verify UPLOAD_DIR exists and is writable, and confirm env vars.
+- CORS issues: ensure backend CORS allows requests from the frontend origin.
+- Large images causing slow loads: implement server-side resizing and serve optimized thumbnails.
 
 ## License
-
-If this repository should include a license, add a LICENSE file at the repository root and mention it here. Example: MIT License.
+Add a LICENSE file (e.g., MIT) if you want to make this project open-source. For demos, MIT is commonly used.
 
 ## Contact
-
-If you have questions or suggestions, open an issue or contact the repository owner: https://github.com/Sanskruti-316
-
----
-
-Notes:
-- This README is intentionally generic. I can update it to include repository-specific details (languages used, how to run the most important project, contributing guidelines, CI status, license) if you provide those details or let me read the repository structure.
+Open an issue or reach out: https://github.com/Sanskruti-316
